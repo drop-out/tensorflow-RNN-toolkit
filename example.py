@@ -6,7 +6,7 @@ feature_list=['f1','f2','f3']
 label_list=['l1','l2','l3']
 
 dataframe = pd.read_csv('train_data.csv',parse_dates=['date'])
-feed_index,feed_seq_length,feed_feature,feed_label=get_sequence_array_from_dataframe(train_data,
+feed_index,feed_seq_length,feed_feature,feed_label=get_sequence_array_from_dataframe(dataframe,
                                                                                     individual_name='member_id', 
                                                                                     date_name='date',
                                                                                     feature_list=feature_list,
