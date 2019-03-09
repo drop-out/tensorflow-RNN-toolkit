@@ -1,6 +1,7 @@
 import pandas as pd
 import tensorflow as tf
 import numpy as np
+from utils.tensorflow_rnn_toolkit import *
 
 feature_list=['f1','f2','f3']
 label_list=['l1','l2','l3']
