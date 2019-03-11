@@ -1,6 +1,25 @@
 import tensorflow as tf
 import pandas as pd
 import numpy as np
+from random import shuffle
+
+class BatchGenerator:
+    def __init__(self,n_observations):
+        self.observation_index = range(n_observations)
+        self.n_observations = n_observations
+        self.pointer = 0
+        shuffle(self.observation_index)
+        
+    def reset_pointer(self):
+        self.pointer = 0
+        shuffle(self.observation_index)
+        
+    def next_batch(self,batch_size):
+        if self.pointer + batch_size > self.n_observations:
+            self.reset_pointer()
+        result = self.observation_index[self.pointer:self.pointer+batch_size]
+        self.pointer += batch_size
+        return result
 
 def get_sequence_array_from_dataframe(dataframe,individual_name,date_name,feature_list,label_list):
     '''
