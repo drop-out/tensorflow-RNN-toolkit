@@ -5,7 +5,7 @@ from random import shuffle
 
 class BatchGenerator:
     def __init__(self,n_observations):
-        self.observation_index = range(n_observations)
+        self.observation_index = list(range(n_observations))
         self.n_observations = n_observations
         self.pointer = 0
         shuffle(self.observation_index)
@@ -20,6 +20,17 @@ class BatchGenerator:
         result = self.observation_index[self.pointer:self.pointer+batch_size]
         self.pointer += batch_size
         return result
+    
+    def test_set(self,batch_size):
+        n_test_batch = self.n_observations//batch_size
+        result=[]
+        for i in range(n_test_batch):
+            result.append(list(range(i*batch_size,(i+1)*batch_size)))
+        residual = self.n_observations%batch_size
+        if residual>0:
+            n_test_batch+=1
+            result.append(list(range((i+1)*batch_size,(i+1)*batch_size+residual)))
+        return n_test_batch,result
 
 def get_sequence_array_from_dataframe(dataframe,individual_name,date_name,feature_list,label_list):
     '''
