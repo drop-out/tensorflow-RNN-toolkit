@@ -38,8 +38,8 @@ def get_sequence_array_from_dataframe(dataframe,individual_name,date_name,featur
     Dataframes should be formatted with columns [individual,date,features...,labels...].
     The returned array is of shape (batch_size,sequence_length,number_of_features or number_of_labels)
     '''
-    dataframe['time_step#']=dataframe.groupby([individual_name])[date_name].rank().values
-    seq_length=dataframe.groupby([individual_name],as_index=False)['time_step#'].max().astype(int)
+    dataframe['time_step#']=dataframe.groupby([individual_name])[date_name].rank().astype(int).values
+    seq_length=dataframe.groupby([individual_name],as_index=False)['time_step#'].max()
     individual_index=seq_length[individual_name].values
     seq_length=seq_length['time_step#'].values
     
