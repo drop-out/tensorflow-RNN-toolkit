@@ -109,50 +109,39 @@ def get_fc_with_bn_output(FC_input,activation=tf.nn.leaky_relu,target='train',n_
     
     return FC_output
 
-def get_fc_output_from_sequence(sequence,activation=tf.nn.leaky_relu,n_hidden_units=20,n_target=3,name='task1'):
+def get_fc_output_from_sequence(sequence,activation=tf.nn.leaky_relu,n_input=20,n_output=3,name='task1'):
     '''
     FC layer building block that should be used when input and output are sequence data.
     ''' 
     batch_size=tf.shape(sequence)[0]
     seq_length=tf.shape(sequence)[1]
     
-    W_1=tf.get_variable(name+'_W_1',[n_hidden_units,n_hidden_units])
-    b_1=tf.get_variable(name+'_b_1',[n_hidden_units])
+    W_1=tf.get_variable(name+'_W_1',[n_input,n_output])
+    b_1=tf.get_variable(name+'_b_1',[n_output])
     
-    W_out=tf.get_variable(name+'_W_out',[n_hidden_units,n_target])
-    b_out=tf.get_variable(name+'_b_out',[1,n_target])
-    
-    sequence=tf.reshape(sequence,[-1,n_hidden_units])
-    
-    sequence=activation(tf.matmul(sequence,W_1)+b_1)
-    sequence=tf.matmul(sequence,W_out)+b_out
+    sequence=tf.reshape(sequence,[-1,n_input])
+    sequence=tf.matmul(sequence,W_1)+b_1
+    sequence=activation(sequence)
 
+    output=tf.reshape(sequence,tf.stack([batch_size,seq_length,n_output]))
     
-    FC_output=tf.reshape(sequence,tf.stack([batch_size,seq_length,n_target]))
-    
-    return FC_output
+    return output
 
-def get_fc_with_bn_output_from_sequence(sequence,activation=tf.nn.leaky_relu,target='train',n_hidden_units=20,n_target=3,name='task1'):
+def get_fc_with_bn_output_from_sequence(sequence,activation=tf.nn.leaky_relu,target='train',n_input=3,n_output=3,name='task1'):
     '''
     FC layer building block(with batch normalization) that should be used when input and output are sequence data.
     ''' 
     batch_size=tf.shape(sequence)[0]
     seq_length=tf.shape(sequence)[1]
     
-    W_1=tf.get_variable(name+'_W_1',[n_hidden_units,n_hidden_units])
-    b_1=tf.get_variable(name+'_b_1',[n_hidden_units])
+    W_1=tf.get_variable(name+'_W_1',[n_input,n_output])
+    b_1=tf.get_variable(name+'_b_1',[n_output])
     
-    W_out=tf.get_variable(name+'_W_out',[n_hidden_units,n_target])
-    b_out=tf.get_variable(name+'_b_out',[1,n_target])
-    
-    sequence=tf.reshape(sequence,[-1,n_hidden_units])
+    sequence=tf.reshape(sequence,[-1,n_input])
     sequence=tf.matmul(sequence,W_1)+b_1
     sequence=tf.layers.batch_normalization(sequence,name=name+'BN',training=True if target=='train' else False)
     sequence=activation(sequence)
-    
-    sequence=tf.matmul(sequence,W_out)+b_out
 
+    output=tf.reshape(sequence,tf.stack([batch_size,seq_length,n_output]))
     
-    FC_output=tf.reshape(sequence,tf.stack([batch_size,seq_length,n_target]))
-    
-    return FC_output
+    return output

@@ -44,9 +44,16 @@ class Model():
                 logits=get_fc_with_bn_output_from_sequence(output,
                                                            activation=tf.nn.relu,
                                                            target=target,
-                                                           n_hidden_units=PARAS.n_hu,
-                                                           n_target=PARAS.n_label,
-                                                           name='FC')
+                                                           n_input=PARAS.n_hu,
+                                                           n_output=PARAS.n_hu,
+                                                           name='FC_1')
+
+                logits=get_fc_with_bn_output_from_sequence(logits,
+                                                           activation=tf.identity,
+                                                           target=target,
+                                                           n_input=PARAS.n_hu,
+                                                           n_output=PARAS.n_label,
+                                                           name='FC_2')
             
             #output layer
             prob=tf.nn.sigmoid(logits)
