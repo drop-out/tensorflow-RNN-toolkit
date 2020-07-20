@@ -86,6 +86,34 @@ def get_rnn_output(input_seq,seq_length=None,cell=tf.nn.rnn_cell.GRUCell,activat
 
     return outputs, state
 
+def get_bi_rnn_output(input_seq,seq_length=None,cell=tf.nn.rnn_cell.GRUCell,activation=tf.tanh,half_hidden_units=10,name='bi-RNN1',concat_output=False,**kwargs):
+    '''
+    bidirectional-RNN layer building block.
+    if concat_output is True, return concatenated outputs and concatenated states, else return the original tensorflow bidirectionall_dynamic_rnn outputs tuple and states tuple
+    ''' 
+
+    batch_size=tf.shape(input_seq)[0]
+    
+    #RNN layer
+    cell_fw=cell(num_units=half_hidden_units,activation=activation,name=name+'_cell_fw',**kwargs)
+    cell_bw=cell(num_units=half_hidden_units,activation=activation,name=name+'_cell_bw',**kwargs)
+    
+    #initial_state
+    #initial_state = cell.zero_state(batch_size, dtype=tf.float32)
+    initial_state_fw = tf.get_variable(name+'_initial_state_fw',[1,half_hidden_units])
+    initial_state_fw = tf.tile(initial_state_fw, tf.stack([batch_size, 1]))
+    
+    initial_state_bw = tf.get_variable(name+'_initial_state_bw',[1,half_hidden_units])
+    initial_state_bw = tf.tile(initial_state_bw, tf.stack([batch_size, 1]))
+    
+    outputs, states = tf.nn.bidirectional_dynamic_rnn(cell_fw, cell_bw, input_seq,seq_length,
+                                       initial_state_fw=initial_state_fw,initial_state_bw=initial_state_bw)
+    
+    if concat_output is True:
+        return tf.concat(outputs,axis=2),tf.concat(states,axis=1)
+    else:
+        return outputs, states
+
 def get_fc_output(FC_input,activation=tf.nn.leaky_relu,n_hu_in=10,n_hu_out=10,name='FC1',):
     '''
     FC layer building block.
