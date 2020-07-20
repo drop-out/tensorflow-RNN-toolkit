@@ -48,7 +48,8 @@ class Model():
                                                            n_output=PARAS.n_hu,
                                                            name='FC_1')
 
-                logits=get_fc_with_bn_output_from_sequence(logits,
+                # should not add batch normalization to the last layer
+                logits=get_fc_output_from_sequence(logits,
                                                            activation=tf.identity,
                                                            target=target,
                                                            n_input=PARAS.n_hu,
