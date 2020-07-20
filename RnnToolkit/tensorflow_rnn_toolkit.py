@@ -114,7 +114,7 @@ def get_bi_rnn_output(input_seq,seq_length=None,cell=tf.nn.rnn_cell.GRUCell,acti
     else:
         return outputs, states
 
-def get_fc_output(FC_input,activation=tf.nn.leaky_relu,n_hu_in=10,n_hu_out=10,name='FC1',):
+def get_fc_output(FC_input,activation=tf.nn.leaky_relu,n_hu_in=10,n_hu_out=10,name='FC1'):
     '''
     FC layer building block.
     ''' 
