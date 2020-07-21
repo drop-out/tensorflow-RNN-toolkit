@@ -1,7 +1,7 @@
 import pandas as pd
 import tensorflow as tf
 import numpy as np
-from utils.tensorflow_rnn_toolkit import *
+import RnnToolkit as rt
 
 feature_list=['f1','f2','f3']
 label_list=['l1','l2','l3']
@@ -34,14 +34,21 @@ class Model():
 
             #RNN layer
             with tf.variable_scope('RNN',reuse=tf.AUTO_REUSE):
-                output,state=get_rnn_output(feature,
+                output,state=rt.get_rnn_output(feature,
                                       cell=tf.nn.rnn_cell.GRUCell,
                                       n_hidden_units=PARAS.n_hu,
-                                      name='RNN')
+                                      name='RNN1')
+                
+                output_temp,state=rt.get_rnn_output(output,
+                                      cell=tf.nn.rnn_cell.GRUCell,
+                                      n_hidden_units=PARAS.n_hu,
+                                      name='RNN2')
+                
+                output+=output_temp # 残差连接
                 
             #FC layer
             with tf.variable_scope('FC',reuse=tf.AUTO_REUSE):
-                logits=get_fc_with_bn_output_from_sequence(output,
+                logits=rt.get_fc_with_bn_output_from_sequence(output,
                                                            activation=tf.nn.relu,
                                                            target=target,
                                                            n_input=PARAS.n_hu,
@@ -49,7 +56,7 @@ class Model():
                                                            name='FC_1')
 
                 # should not add batch normalization to the last layer
-                logits=get_fc_output_from_sequence(logits,
+                logits=rt.get_fc_output_from_sequence(logits,
                                                            activation=tf.identity,
                                                            target=target,
                                                            n_input=PARAS.n_hu,
@@ -82,19 +89,41 @@ class Model():
             with tf.control_dependencies(update_ops):
                 train_step=optimizer.apply_gradients(grads)
 
-            self.train_step=train_step
-            self.obj=obj
-            self.obj_with_penalty=obj_with_penalty
-            self.train_acc=train_acc
-            self.feature=feature
-            self.label=label
-            self.lr=lr
+            self.train_step = train_step
+            self.obj = obj
+            self.obj_with_penalty = obj_with_penalty
+            self.train_acc = train_acc
+            self.feature = feature
+            self.label = label
+            self.pred = pred
+            self.lr = lr
 
 
 #Train
 model= Model(target='train')
-sess=tf.Session()
-sess.run(tf.global_variables_initializer())
-_,_acc = sess.run([model.train_step,model.train_acc],feed_dict={model.label:feed_label,model.feature:feed_feature,model.lr:0.01})
-
-print(_acc)
+model_name = 'model_train'
+global_step = 0
+cum_accuracy=[0.0]*100
+with tf.Session() as sess:
+    sess.run(tf.global_variables_initializer())
+    saver = tf.train.Saver(tf.global_variables()) # 模型保存器(checkpoint)
+    if global_step>0:
+        saver.restore(sess,'out/model/%s.ckpt-%s'%(model_name,global_step-1))
+    for i in range(1,10001):
+        _,_acc = sess.run([model.train_step,model.train_acc],feed_dict={model.label:feed_label,model.feature:feed_feature,model.lr:0.01})
+        cum_accuracy = cum_accuracy[1:]+_acc
+        if i%100==0:
+            print(sum(cum_accuracy)/100)
+        if i%1000==0:
+            saver.save(sess,'out/model/%s.ckpt'%model_name, global_step=global_step)
+            global_step+=1
+    
+#Predict
+model= Model(target='predict')
+model_name = 'model_train'
+global_step = 11
+with tf.Session() as sess:
+    sess.run(tf.global_variables_initializer())
+    saver = tf.train.Saver(tf.global_variables()) # 模型保存器(checkpoint)
+    saver.restore(sess,'out/model/%s.ckpt-%s'%(model_name,global_step-1))
+    _pred = sess.run(model.pred,feed_dict={model.feature:feed_feature})
