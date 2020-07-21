@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="RnnToolkit-by-dropout",
-    version="0.2",
+    version="0.3",
     author="drop-out",
     author_email="drop-out@foxmail.com",
     description="Convenient RNN building blocks for Tensorflow, including sequence generator, FC layer, RNN layer, etc.",

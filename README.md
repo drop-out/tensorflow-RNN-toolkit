@@ -3,5 +3,5 @@ Convenient RNN building blocks for Tensorflow, including sequence generator, FC 
 
 # install
 ```python
-pip install https://github.com/drop-out/tensorflow-RNN-toolkit/raw/master/dist/RnnToolkit-by-dropout-0.2.tar.gz
+pip install https://github.com/drop-out/tensorflow-RNN-toolkit/raw/master/dist/RnnToolkit-by-dropout-0.3.tar.gz
 ```

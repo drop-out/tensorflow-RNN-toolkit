@@ -66,6 +66,68 @@ def acc(pred,true,mask):
     acc=tf.reduce_sum(equal*mask)/tf.reduce_sum(mask)
     return acc
 
+
+def sequence_mask_tail(seq_length, maxlen, dtype=tf.float32):
+    '''like tf.sequence_mask, but only the last element in the sequence will be masked, other values will be zero.
+    the function is usually used in sequence labeling, where we need this mask to labeling the start or end position of words of interest.
+    '''
+    batch_size = tf.shape(seq_length)[0]
+    mask_index = tf.stack([tf.range(batch_size),seq_length],axis=1)
+    mask_values = tf.ones(batch_size)
+    mask_shape = tf.stack([batch_size,maxlen])
+    mask = tf.sparse_to_dense(mask_index, mask_shape, mask_values, default_value=0)
+    mask = tf.cast(mask,dtype)
+    return mask
+
+def get_logistic_output(labels,logits):
+    '''given labels and logits, returns p,pred_label,loss,acc. loss and acc are returned in example level(unreduced form).'''
+    p = tf.sigmoid(logits)
+    pred = tf.cast(logits>0,tf.int32)
+    loss = -tf.cast(labels,tf.float32)*logits + tf.log(1+tf.exp(logits))
+    acc = tf.cast(tf.equal(labels,pred),tf.float32)
+    return p,pred,loss,acc
+
+def get_softmax_output(labels,logits):
+    '''given labels and logits, returns p,pred_label,loss,acc. loss and acc are returned in example level(unreduced form).'''
+    logsumexp = tf.reduce_logsumexp(logits,axis=-1)
+    p = tf.exp(logits-tf.expand_dims(logsumexp,-1))
+    pred = tf.argmax(logits,axis=-1)
+    labels_reduce = tf.argmax(labels,axis=-1)
+    loss = -tf.reduce_sum(tf.cast(labels,tf.float32)*logits,axis=-1) + logsumexp
+    acc = tf.cast(tf.equal(labels_reduce,pred),tf.float32)
+    return p,pred,loss,acc
+
+def get_softmax_output_with_mask_for_sequence_direction_softmax(labels,logits,seq_length):
+    '''for usage in sequence labeling, where softmax is set on the sequence direction. An example is answer finding where the task is to labeling the start position.
+    given labels,logits and seq_length, returns p,pred_label,loss,acc. loss and acc are returned in example level(unreduced form).'''
+    logits = mask_sequence_logits_for_sequence_direction_softmax(logits,seq_length)
+    return get_softmax_output(labels,logits)
+
+def mask_sequence_logits_for_sequence_direction_softmax(logits,seq_length):
+    '''for usage in sequence labeling, where softmax is set on the sequence direction. An example is answer finding where the task is to labeling the start position.
+    inputs:logits of size [batch_size,max_seq_length] and seq_length of size [batch_size]
+    returns masked logits'''
+    batch_size = tf.shape(logits)[0]
+    max_seq_length = tf.shape(logits)[1]
+    seq_mask = tf.sequence_mask(seq_length, maxlen=max_seq_length, dtype=tf.float32)
+    return logits-(1-seq_mask)*1000
+
+def get_reduce_max_with_mask_from_sequence(input_seq,seq_length):
+    '''for usage in sequence pooling, where we should avoid take masked values into account'''
+    batch_size = tf.shape(input_seq)[0]
+    max_seq_length = tf.shape(input_seq)[1]
+    seq_mask = tf.sequence_mask(seq_length, maxlen=max_seq_length, dtype=tf.float32)
+    return tf.reduce_max(input_seq-tf.expand_dims((1-seq_mask)*10000,-1),axis=1)
+
+def get_reduce_min_with_mask_from_sequence(input_seq,seq_length):
+    '''for usage in sequence pooling, where we should avoid take masked values into account'''
+    batch_size = tf.shape(input_seq)[0]
+    max_seq_length = tf.shape(input_seq)[1]
+    seq_mask = tf.sequence_mask(seq_length, maxlen=max_seq_length, dtype=tf.float32)
+    return tf.reduce_min(input_seq+tf.expand_dims((1-seq_mask)*10000,-1),axis=1)
+    
+
+
 def get_rnn_output(input_seq,seq_length=None,cell=tf.nn.rnn_cell.GRUCell,activation=tf.tanh,n_hidden_units=10,name='RNN1',**kwargs):
     '''
     RNN layer building block.
