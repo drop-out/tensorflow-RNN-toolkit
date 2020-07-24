@@ -73,7 +73,7 @@ def sequence_mask_tail(seq_length, maxlen, dtype=tf.float32):
     '''
     batch_size = tf.shape(seq_length)[0]
     mask_index = tf.stack([tf.range(batch_size),seq_length],axis=1)
-    mask_values = tf.ones(batch_size)
+    mask_values = tf.ones([batch_size])
     mask_shape = tf.stack([batch_size,maxlen])
     mask = tf.sparse_to_dense(mask_index, mask_shape, mask_values, default_value=0)
     mask = tf.cast(mask,dtype)
