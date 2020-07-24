@@ -128,15 +128,19 @@ def get_reduce_min_with_mask_from_sequence(input_seq,seq_length):
     
 
 
-def get_rnn_output(input_seq,seq_length=None,cell=tf.nn.rnn_cell.GRUCell,activation=tf.tanh,n_hidden_units=10,name='RNN1',**kwargs):
+def get_rnn_output(input_seq,seq_length=None,cell=tf.nn.rnn_cell.GRUCell,activation=tf.tanh,n_hidden_units=10,name='RNN1',ignore_cell_name=False,**kwargs):
     '''
     RNN layer building block.
+    ignore cell name should set to True if you are using low version of tensorflow where cell name is not supported.
     ''' 
 
     batch_size=tf.shape(input_seq)[0]
     
     #RNN layer
-    cell=cell(num_units=n_hidden_units,activation=activation,name=name+'_cell',**kwargs)
+    if ignore_cell_name:
+        cell=cell(num_units=n_hidden_units,activation=activation,**kwargs)
+    else:
+        cell=cell(num_units=n_hidden_units,activation=activation,name=name+'_cell',**kwargs)
     
     #initial_state
     #initial_state = cell.zero_state(batch_size, dtype=tf.float32)
@@ -148,17 +152,22 @@ def get_rnn_output(input_seq,seq_length=None,cell=tf.nn.rnn_cell.GRUCell,activat
 
     return outputs, state
 
-def get_bi_rnn_output(input_seq,seq_length=None,cell=tf.nn.rnn_cell.GRUCell,activation=tf.tanh,half_hidden_units=10,name='bi-RNN1',concat_output=False,**kwargs):
+def get_bi_rnn_output(input_seq,seq_length=None,cell=tf.nn.rnn_cell.GRUCell,activation=tf.tanh,half_hidden_units=10,name='bi-RNN1',ignore_cell_name=False,concat_output=False,**kwargs):
     '''
     bidirectional-RNN layer building block.
-    if concat_output is True, return concatenated outputs and concatenated states, else return the original tensorflow bidirectionall_dynamic_rnn outputs tuple and states tuple
+    if concat_output is True, return concatenated outputs and concatenated states, else return the original tensorflow bidirectionall_dynamic_rnn outputs tuple and states tuple.
+    ignore cell name should set to True if you are using low version of tensorflow where cell name is not supported.
     ''' 
 
     batch_size=tf.shape(input_seq)[0]
     
     #RNN layer
-    cell_fw=cell(num_units=half_hidden_units,activation=activation,name=name+'_cell_fw',**kwargs)
-    cell_bw=cell(num_units=half_hidden_units,activation=activation,name=name+'_cell_bw',**kwargs)
+    if ignore_cell_name:
+        cell_fw=cell(num_units=half_hidden_units,activation=activation,**kwargs)
+        cell_bw=cell(num_units=half_hidden_units,activation=activation,**kwargs)
+    else:
+        cell_fw=cell(num_units=half_hidden_units,activation=activation,name=name+'_cell_fw',**kwargs)
+        cell_bw=cell(num_units=half_hidden_units,activation=activation,name=name+'_cell_bw',**kwargs)
     
     #initial_state
     #initial_state = cell.zero_state(batch_size, dtype=tf.float32)
