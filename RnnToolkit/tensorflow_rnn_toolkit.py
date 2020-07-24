@@ -246,6 +246,7 @@ def get_fc_with_bn_output_from_sequence(sequence,activation=tf.nn.leaky_relu,tar
     return output
 
 def simple_save(sess,path,inputs,outputs):
+    '''like tf.saved_model.simple_save, used for low version of tensorflow where tf.saved_model.simple_save is not available'''
     saved_model_builder = tf.saved_model.builder.SavedModelBuilder(path)
     inputs = {key:tf.saved_model.utils.build_tensor_info(value) for (key,value) in inputs.items()}
     outputs = {key:tf.saved_model.utils.build_tensor_info(value) for (key,value) in outputs.items()}
