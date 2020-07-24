@@ -99,7 +99,7 @@ class Model():
             self.lr = lr
 
 
-#Train
+# Train
 model= Model(target='train')
 model_name = 'model_train'
 global_step = 0
@@ -118,7 +118,7 @@ with tf.Session() as sess:
             saver.save(sess,'out/model/%s.ckpt'%model_name, global_step=global_step)
             global_step+=1
     
-#Predict
+# Predict
 model= Model(target='predict')
 model_name = 'model_train'
 global_step = 11
@@ -127,3 +127,20 @@ with tf.Session() as sess:
     saver = tf.train.Saver(tf.global_variables()) # 模型保存器(checkpoint)
     saver.restore(sess,'out/model/%s.ckpt-%s'%(model_name,global_step-1))
     _pred = sess.run(model.pred,feed_dict={model.feature:feed_feature})
+    
+# Saved Model
+model= Model(target='predict')
+model_name = 'model_train'
+global_step = 11
+with tf.Session() as sess:
+    sess.run(tf.global_variables_initializer())
+    saver = tf.train.Saver(tf.global_variables()) # 模型保存器(checkpoint)
+    saver.restore(sess,'out/model/%s.ckpt-%s'%(model_name,global_step-1))
+    saver_savedmodel = tf.saved_model.simple_save(sess,
+            "out/model/saved_model",
+            inputs={"feature":model.feed_feature},
+            outputs={"pred":model.pred})
+    
+# Predict from saved_model
+predictor = tf.contrib.predictor.from_saved_model("out/model/saved_model")
+predictor({"feature":feed_feature})
