@@ -244,3 +244,14 @@ def get_fc_with_bn_output_from_sequence(sequence,activation=tf.nn.leaky_relu,tar
     output=tf.reshape(sequence,tf.stack([batch_size,seq_length,n_output]))
     
     return output
+
+def simple_save(sess,path,inputs,outputs):
+    saved_model_builder = tf.saved_model.builder.SavedModelBuilder(path)
+    inputs = {key:tf.saved_model.utils.build_tensor_info(value) for (key,value) in inputs.items()}
+    outputs = {key:tf.saved_model.utils.build_tensor_info(value) for (key,value) in outputs.items()}
+    signature_def = tf.saved_model.signature_def_utils.build_signature_def(
+            inputs=inputs,
+            outputs=outputs)
+    saved_model_builder.add_meta_graph_and_variables(sess, tags=['serve'], 
+                                         signature_def_map={'serving_default': signature_def})
+    saved_model_builder.save()
