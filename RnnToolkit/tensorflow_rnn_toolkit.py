@@ -62,6 +62,7 @@ def acc(pred,true,mask):
     '''
     pred=tf.cast(pred,tf.int64)
     true=tf.cast(true,tf.int64)
+    mask=tf.cast(mask,tf.float32)
     equal=tf.cast(tf.equal(pred,true),tf.float32)
     acc=tf.reduce_sum(equal*mask)/tf.reduce_sum(mask)
     return acc
