@@ -111,7 +111,7 @@ with tf.Session() as sess:
         saver.restore(sess,'out/model/%s.ckpt-%s'%(model_name,global_step-1))
     for i in range(1,10001):
         _,_acc = sess.run([model.train_step,model.train_acc],feed_dict={model.label:feed_label,model.feature:feed_feature,model.lr:0.01})
-        cum_accuracy = cum_accuracy[1:]+_acc
+        cum_accuracy = cum_accuracy[1:]+[_acc]
         if i%100==0:
             print(sum(cum_accuracy)/100)
         if i%1000==0:
